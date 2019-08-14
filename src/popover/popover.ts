@@ -30,6 +30,7 @@ import {positionElements, PlacementArray} from '../util/positioning';
 import {PopupService} from '../util/popup';
 
 import {NgbPopoverConfig} from './popover-config';
+import {fromEvent} from 'rxjs';
 
 let nextId = 0;
 
@@ -156,11 +157,13 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
    */
   @Output() hidden = new EventEmitter<void>();
 
+  private _updated = false;
   private _ngbPopoverWindowId = `ngb-popover-${nextId++}`;
   private _popupService: PopupService<NgbPopoverWindow>;
   private _windowRef: ComponentRef<NgbPopoverWindow>;
   private _unregisterListenersFn;
   private _zoneSubscription: any;
+  private _resizeSubscription: any;
   private _isDisabled(): boolean {
     if (this.disablePopover) {
       return true;
@@ -187,8 +190,12 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
     this._popupService = new PopupService<NgbPopoverWindow>(
         NgbPopoverWindow, injector, viewContainerRef, _renderer, componentFactoryResolver, _applicationRef);
 
+    this._resizeSubscription = fromEvent(window, 'resize').subscribe(() => {
+      this._updated = true;
+    });
     this._zoneSubscription = _ngZone.onStable.subscribe(() => {
-      if (this._windowRef) {
+      if (this._windowRef && this._updated) {
+        this._updated = false;
         positionElements(
             this._elementRef.nativeElement, this._windowRef.location.nativeElement, this.placement,
             this.container === 'body', 'bs-popover');
@@ -232,6 +239,8 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
           this._ngZone, this._document, this.autoClose, () => this.close(), this.hidden,
           [this._windowRef.location.nativeElement]);
       this.shown.emit();
+
+      this._updated = true;
     }
   }
 
@@ -289,5 +298,6 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
       this._unregisterListenersFn();
     }
     this._zoneSubscription.unsubscribe();
+    this._resizeSubscription.unsubscribe();
   }
 }
