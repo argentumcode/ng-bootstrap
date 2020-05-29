@@ -31,7 +31,7 @@ Please check all components we have in action at https://ng-bootstrap.github.io
 ## Dependencies
 
 The only two dependencies are [Angular](https://angular.io) and [Bootstrap 4](https://getbootstrap.com) CSS.
-Here is the list of minimal required versions:
+The supported versions are:
 
 | ng-bootstrap | Angular | Bootstrap CSS |
 | ------------ | ------- | ------------- |
@@ -40,63 +40,33 @@ Here is the list of minimal required versions:
 | 3.x.x        | 6.1.0   | 4.0.0         |
 | 4.x.x        | 7.0.0   | 4.0.0         |
 | 5.x.x        | 8.0.0   | 4.3.1         |
+| 6.x.x        | 9.0.0   | 4.4.1         |
 
 ## Installation
 
-You need to have an Angular project with the supported Angular version. We strongly recommend using [Angular CLI](https://cli.angular.io) for this.
+We strongly recommend using [Angular CLI](https://cli.angular.io) for setting up a new project. If you have an Angular &ge; 9 CLI project, you could simply use our schematics to add ng-bootstrap library to it. 
 
-You also need to add Bootstrap 4 CSS to your application by using your preferred way (it really depends on the setup you're using). Ex. for Angular CLI you can [get Bootstrap from npm](https://www.npmjs.com/package/bootstrap) and update your `angular.json` with something like:
+Just run the following:
 
-```json
-"styles": [
-  "node_modules/bootstrap/dist/css/bootstrap.min.css"
-]
-```
-
-Please note that you need only CSS and **should not** add other JavaScript dependencies like `bootstrap.js`, `jQuery` or `popper.js` as ng-bootstrap's goal is to completely replace them.
-
-After installing the above dependencies, install `ng-bootstrap` via:
 ```shell
-npm install --save @ng-bootstrap/ng-bootstrap
-```
-Once installed you need to import our main module:
-```js
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
-
-@NgModule({
-  ...
-  imports: [NgbModule, ...],
-  ...
-})
-export class YourAppModule {
-}
+ng add @ng-bootstrap/ng-bootstrap
 ```
 
-Alternatively you could only import modules with components you need, ex. pagination and alert.
-The resulting bundle will be smaller in this case.
+It will install ng-bootstrap for the default application specified in your `angular.json`.
+If you have multiple projects and you want to target a specific application, you could specify the `--project` option:
 
-```js
-import {NgbPaginationModule, NgbAlertModule} from '@ng-bootstrap/ng-bootstrap';
-
-@NgModule({
-  ...
-  imports: [NgbPaginationModule, NgbAlertModule, ...],
-  ...
-})
-export class YourAppModule {
-}
+```shell
+ng add @ng-bootstrap/ng-bootstrap --project myProject
 ```
 
+If you prefer not to use schematics and install everything manually, please refer to the 
+[manual installation instructions](https://ng-bootstrap.github.io/#/getting-started#installation) on our website. 
 
 ## Supported browsers
 
-We support the same browsers and versions supported by both Bootstrap 4 and Angular, whichever is _more_ restrictive. See [Angular browser support](https://angular.io/guide/browser-support) and [Bootstrap browser support](https://getbootstrap.com/docs/4.0/getting-started/browsers-devices/#supported-browsers) for more details, but on the high-level it should be something like:
+We support the same browsers and versions supported by both Bootstrap 4 and Angular, whichever is _more_ restrictive. See [Angular browser support](https://angular.io/guide/browser-support) and [Bootstrap browser support](https://getbootstrap.com/docs/4.4/getting-started/browsers-devices/#supported-browsers) for more details.
 
-* Chrome (45+)
-* Firefox (40+)
-* IE (10+)
-* Edge (20+)
-* Safari (7+)
+Out code is automatically tested on all supported browsers.
 
 
 ## Getting help
@@ -117,7 +87,7 @@ We want to fix it ASAP! But before fixing a bug we need to reproduce and confirm
 
 We ask you to respect two things:
 * fill the GitHub issue template by providing the bug description and appropriate versions of Angular, ng-bootstrap and TypeScript
-* provide a use-case that fails with a **minimal reproduction scenario** using [StackBlitz](https://stackblitz) (you can start by forking one from our [demo page](https://ng-bootstrap.github.io/#/components))
+* provide a use-case that fails with a **minimal reproduction scenario** using [StackBlitz](https://stackblitz.com) (you can start by forking one from our [demo page](https://ng-bootstrap.github.io/#/components))
 
 A minimal reproduction scenario allows us to quickly confirm a bug (or point out a coding problem) as well as confirm that we are fixing the right problem.
 

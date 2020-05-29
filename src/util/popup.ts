@@ -14,8 +14,8 @@ export class ContentRef {
 }
 
 export class PopupService<T> {
-  private _windowRef: ComponentRef<T>;
-  private _contentRef: ContentRef;
+  private _windowRef: ComponentRef<T>| null = null;
+  private _contentRef: ContentRef | null = null;
 
   constructor(
       private _type: any, private _injector: Injector, private _viewContainerRef: ViewContainerRef,
@@ -26,8 +26,8 @@ export class PopupService<T> {
     if (!this._windowRef) {
       this._contentRef = this._getContentRef(content, context);
       this._windowRef = this._viewContainerRef.createComponent(
-          this._componentFactoryResolver.resolveComponentFactory<T>(this._type), 0, this._injector,
-          this._contentRef.nodes);
+          this._componentFactoryResolver.resolveComponentFactory<T>(this._type), this._viewContainerRef.length,
+          this._injector, this._contentRef.nodes);
     }
 
     return this._windowRef;
@@ -38,7 +38,7 @@ export class PopupService<T> {
       this._viewContainerRef.remove(this._viewContainerRef.indexOf(this._windowRef.hostView));
       this._windowRef = null;
 
-      if (this._contentRef.viewRef) {
+      if (this._contentRef?.viewRef) {
         this._applicationRef.detachView(this._contentRef.viewRef);
         this._contentRef.viewRef.destroy();
         this._contentRef = null;
@@ -46,7 +46,7 @@ export class PopupService<T> {
     }
   }
 
-  private _getContentRef(content: string | TemplateRef<any>, context?: any): ContentRef {
+  private _getContentRef(content?: string | TemplateRef<any>, context?: any): ContentRef {
     if (!content) {
       return new ContentRef([]);
     } else if (content instanceof TemplateRef) {

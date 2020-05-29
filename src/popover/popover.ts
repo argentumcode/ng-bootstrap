@@ -43,7 +43,7 @@ let nextId = 0;
     <div class="arrow"></div>
     <h3 class="popover-header" *ngIf="title != null">
       <ng-template #simpleTitle>{{title}}</ng-template>
-      <ng-template [ngTemplateOutlet]="isTitleTemplate() ? title : simpleTitle" [ngTemplateOutletContext]="context"></ng-template>
+      <ng-template [ngTemplateOutlet]="isTitleTemplate() ? $any(title) : simpleTitle" [ngTemplateOutletContext]="context"></ng-template>
     </h3>
     <div class="popover-body"><ng-content></ng-content></div>`,
   styleUrls: ['./popover.scss']
@@ -62,6 +62,8 @@ export class NgbPopoverWindow {
  */
 @Directive({selector: '[ngbPopover]', exportAs: 'ngbPopover'})
 export class NgbPopover implements OnInit, OnDestroy, OnChanges {
+  static ngAcceptInputType_autoClose: boolean | string;
+
   /**
    * Indicates whether the popover should be closed on `Escape` key and inside/outside clicks:
    *
@@ -160,7 +162,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
   private _updated = false;
   private _ngbPopoverWindowId = `ngb-popover-${nextId++}`;
   private _popupService: PopupService<NgbPopoverWindow>;
-  private _windowRef: ComponentRef<NgbPopoverWindow>;
+  private _windowRef: ComponentRef<NgbPopoverWindow>| null = null;
   private _unregisterListenersFn;
   private _zoneSubscription: any;
   private _resizeSubscription: any;
@@ -178,7 +180,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
       private _elementRef: ElementRef<HTMLElement>, private _renderer: Renderer2, injector: Injector,
       componentFactoryResolver: ComponentFactoryResolver, viewContainerRef: ViewContainerRef, config: NgbPopoverConfig,
       private _ngZone: NgZone, @Inject(DOCUMENT) private _document: any, private _changeDetector: ChangeDetectorRef,
-      private _applicationRef: ApplicationRef) {
+      applicationRef: ApplicationRef) {
     this.autoClose = config.autoClose;
     this.placement = config.placement;
     this.triggers = config.triggers;
@@ -188,7 +190,7 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
     this.openDelay = config.openDelay;
     this.closeDelay = config.closeDelay;
     this._popupService = new PopupService<NgbPopoverWindow>(
-        NgbPopoverWindow, injector, viewContainerRef, _renderer, componentFactoryResolver, _applicationRef);
+        NgbPopoverWindow, injector, viewContainerRef, _renderer, componentFactoryResolver, applicationRef);
 
     this._resizeSubscription = fromEvent(window, 'resize').subscribe(() => {
       this._updated = true;
@@ -283,9 +285,12 @@ export class NgbPopover implements OnInit, OnDestroy, OnChanges {
         this.close.bind(this), +this.openDelay, +this.closeDelay);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges({ngbPopover, popoverTitle, disablePopover, popoverClass}: SimpleChanges) {
+    if (popoverClass && this.isOpen()) {
+      this._windowRef !.instance.popoverClass = popoverClass.currentValue;
+    }
     // close popover if title and content become empty, or disablePopover set to true
-    if ((changes['ngbPopover'] || changes['popoverTitle'] || changes['disablePopover']) && this._isDisabled()) {
+    if ((ngbPopover || popoverTitle || disablePopover) && this._isDisabled()) {
       this.close();
     }
   }

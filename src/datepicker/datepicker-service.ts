@@ -1,4 +1,4 @@
-import {NgbCalendar, NgbPeriod} from './ngb-calendar';
+import {NgbCalendar} from './ngb-calendar';
 import {NgbDate} from './ngb-date';
 import {NgbDateStruct} from './ngb-date-struct';
 import {DatepickerViewModel, NgbDayTemplateData, NgbMarkDisabled} from './datepicker-view-model';
@@ -21,104 +21,116 @@ import {
 import {filter} from 'rxjs/operators';
 import {NgbDatepickerI18n} from './datepicker-i18n';
 
+export interface DatepickerServiceInputs extends Partial<
+    Required<Pick<DatepickerViewModel, 'dayTemplateData' | 'displayMonths' | 'disabled' | 'firstDayOfWeek' |
+                      'focusVisible' | 'markDisabled' | 'maxDate' | 'minDate' | 'navigation' | 'outsideDays'>>> {}
+
 @Injectable()
 export class NgbDatepickerService {
+  private _VALIDATORS:
+      {[K in keyof DatepickerServiceInputs]: (v: DatepickerServiceInputs[K]) => Partial<DatepickerViewModel>| void} = {
+        dayTemplateData: (dayTemplateData: NgbDayTemplateData) => {
+          if (this._state.dayTemplateData !== dayTemplateData) {
+            return {dayTemplateData};
+          }
+        },
+        displayMonths: (displayMonths: number) => {
+          displayMonths = toInteger(displayMonths);
+          if (isInteger(displayMonths) && displayMonths > 0 && this._state.displayMonths !== displayMonths) {
+            return {displayMonths};
+          }
+        },
+        disabled: (disabled: boolean) => {
+          if (this._state.disabled !== disabled) {
+            return {disabled};
+          }
+        },
+        firstDayOfWeek: (firstDayOfWeek: number) => {
+          firstDayOfWeek = toInteger(firstDayOfWeek);
+          if (isInteger(firstDayOfWeek) && firstDayOfWeek >= 0 && this._state.firstDayOfWeek !== firstDayOfWeek) {
+            return {firstDayOfWeek};
+          }
+        },
+        focusVisible: (focusVisible: boolean) => {
+          if (this._state.focusVisible !== focusVisible && !this._state.disabled) {
+            return {focusVisible};
+          }
+        },
+        markDisabled: (markDisabled: NgbMarkDisabled) => {
+          if (this._state.markDisabled !== markDisabled) {
+            return {markDisabled};
+          }
+        },
+        maxDate: (date: NgbDate) => {
+          const maxDate = this.toValidDate(date, null);
+          if (isChangedDate(this._state.maxDate, maxDate)) {
+            return {maxDate};
+          }
+        },
+        minDate: (date: NgbDate) => {
+          const minDate = this.toValidDate(date, null);
+          if (isChangedDate(this._state.minDate, minDate)) {
+            return {minDate};
+          }
+        },
+        navigation: (navigation: 'select' | 'arrows' | 'none') => {
+          if (this._state.navigation !== navigation) {
+            return {navigation};
+          }
+        },
+        outsideDays: (outsideDays: 'visible' | 'collapsed' | 'hidden') => {
+          if (this._state.outsideDays !== outsideDays) {
+            return {outsideDays};
+          }
+        }
+      };
+
   private _model$ = new Subject<DatepickerViewModel>();
 
-  private _select$ = new Subject<NgbDate>();
+  private _dateSelect$ = new Subject<NgbDate>();
 
   private _state: DatepickerViewModel = {
+    dayTemplateData: null,
+    markDisabled: null,
+    maxDate: null,
+    minDate: null,
     disabled: false,
     displayMonths: 1,
+    firstDate: null,
     firstDayOfWeek: 1,
+    lastDate: null,
+    focusDate: null,
     focusVisible: false,
     months: [],
     navigation: 'select',
     outsideDays: 'visible',
     prevDisabled: false,
     nextDisabled: false,
-    selectBoxes: {years: [], months: []},
-    selectedDate: null
+    selectedDate: null,
+    selectBoxes: {years: [], months: []}
   };
 
   get model$(): Observable<DatepickerViewModel> { return this._model$.pipe(filter(model => model.months.length > 0)); }
 
-  get select$(): Observable<NgbDate> { return this._select$.pipe(filter(date => date !== null)); }
+  get dateSelect$(): Observable<NgbDate> { return this._dateSelect$.pipe(filter(date => date !== null)); }
 
-  set dayTemplateData(dayTemplateData: NgbDayTemplateData) {
-    if (this._state.dayTemplateData !== dayTemplateData) {
-      this._nextState({dayTemplateData});
-    }
-  }
+  set(options: DatepickerServiceInputs) {
+    let patch = Object.keys(options)
+                    .map(key => this._VALIDATORS[key](options[key]))
+                    .reduce((obj, part) => ({...obj, ...part}), {});
 
-  set disabled(disabled: boolean) {
-    if (this._state.disabled !== disabled) {
-      this._nextState({disabled});
-    }
-  }
-
-  set displayMonths(displayMonths: number) {
-    displayMonths = toInteger(displayMonths);
-    if (isInteger(displayMonths) && displayMonths > 0 && this._state.displayMonths !== displayMonths) {
-      this._nextState({displayMonths});
-    }
-  }
-
-  set firstDayOfWeek(firstDayOfWeek: number) {
-    firstDayOfWeek = toInteger(firstDayOfWeek);
-    if (isInteger(firstDayOfWeek) && firstDayOfWeek >= 0 && this._state.firstDayOfWeek !== firstDayOfWeek) {
-      this._nextState({firstDayOfWeek});
-    }
-  }
-
-  set focusVisible(focusVisible: boolean) {
-    if (this._state.focusVisible !== focusVisible && !this._state.disabled) {
-      this._nextState({focusVisible});
-    }
-  }
-
-  set maxDate(date: NgbDate) {
-    const maxDate = this.toValidDate(date, null);
-    if (isChangedDate(this._state.maxDate, maxDate)) {
-      this._nextState({maxDate});
-    }
-  }
-
-  set markDisabled(markDisabled: NgbMarkDisabled) {
-    if (this._state.markDisabled !== markDisabled) {
-      this._nextState({markDisabled});
-    }
-  }
-
-  set minDate(date: NgbDate) {
-    const minDate = this.toValidDate(date, null);
-    if (isChangedDate(this._state.minDate, minDate)) {
-      this._nextState({minDate});
-    }
-  }
-
-  set navigation(navigation: 'select' | 'arrows' | 'none') {
-    if (this._state.navigation !== navigation) {
-      this._nextState({navigation});
-    }
-  }
-
-  set outsideDays(outsideDays: 'visible' | 'collapsed' | 'hidden') {
-    if (this._state.outsideDays !== outsideDays) {
-      this._nextState({outsideDays});
+    if (Object.keys(patch).length > 0) {
+      this._nextState(patch);
     }
   }
 
   constructor(private _calendar: NgbCalendar, private _i18n: NgbDatepickerI18n) {}
 
-  focus(date: NgbDate) {
-    if (!this._state.disabled && this._calendar.isValid(date) && isChangedDate(this._state.focusDate, date)) {
+  focus(date?: NgbDate | null) {
+    const focusedDate = this.toValidDate(date, null);
+    if (focusedDate != null && !this._state.disabled && isChangedDate(this._state.focusDate, focusedDate)) {
       this._nextState({focusDate: date});
     }
-  }
-
-  focusMove(period?: NgbPeriod, number?: number) {
-    this.focus(this._calendar.getNext(this._state.focusDate, period, number));
   }
 
   focusSelect() {
@@ -127,32 +139,42 @@ export class NgbDatepickerService {
     }
   }
 
-  open(date: NgbDate) {
+  open(date?: NgbDate | null) {
     const firstDate = this.toValidDate(date, this._calendar.getToday());
-    if (!this._state.disabled && (!this._state.firstDate || isChangedMonth(this._state.firstDate, date))) {
+    if (firstDate != null && !this._state.disabled &&
+        (!this._state.firstDate || isChangedMonth(this._state.firstDate, firstDate))) {
       this._nextState({firstDate});
     }
   }
 
-  select(date: NgbDate, options: {emitEvent?: boolean} = {}) {
+  select(date?: NgbDate | null, options: {emitEvent?: boolean} = {}) {
     const selectedDate = this.toValidDate(date, null);
-    if (!this._state.disabled) {
+    if (selectedDate != null && !this._state.disabled) {
       if (isChangedDate(this._state.selectedDate, selectedDate)) {
         this._nextState({selectedDate});
       }
 
       if (options.emitEvent && isDateSelectable(selectedDate, this._state)) {
-        this._select$.next(selectedDate);
+        this._dateSelect$.next(selectedDate);
       }
     }
   }
 
-  toValidDate(date: NgbDateStruct, defaultValue?: NgbDate): NgbDate {
+  toValidDate(date?: NgbDateStruct | null, defaultValue?: NgbDate | null): NgbDate | null {
     const ngbDate = NgbDate.from(date);
     if (defaultValue === undefined) {
       defaultValue = this._calendar.getToday();
     }
     return this._calendar.isValid(ngbDate) ? ngbDate : defaultValue;
+  }
+
+  getMonth(struct: NgbDateStruct) {
+    for (let month of this._state.months) {
+      if (struct.month === month.number && struct.year === month.year) {
+        return month;
+      }
+    }
+    throw new Error(`month ${struct.month} of year ${struct.year} not found`);
   }
 
   private _nextState(patch: Partial<DatepickerViewModel>) {
@@ -174,7 +196,8 @@ export class NgbDatepickerService {
           }
 
           // calculating tabindex
-          day.tabindex = !disabled && day.date.equals(focusDate) && focusDate.month === month.number ? 0 : -1;
+          day.tabindex =
+              !disabled && focusDate && day.date.equals(focusDate) && focusDate.month === month.number ? 0 : -1;
 
           // override context disabled
           if (disabled === true) {
@@ -232,7 +255,7 @@ export class NgbDatepickerService {
       startDate = state.focusDate;
 
       // nothing to rebuild if only focus changed and it is still visible
-      if (state.months.length !== 0 && !state.focusDate.before(state.firstDate) &&
+      if (state.months.length !== 0 && state.focusDate && !state.focusDate.before(state.firstDate) &&
           !state.focusDate.after(state.lastDate)) {
         return state;
       }
@@ -253,8 +276,8 @@ export class NgbDatepickerService {
 
       // updating months and boundary dates
       state.months = months;
-      state.firstDate = months.length > 0 ? months[0].firstDate : undefined;
-      state.lastDate = months.length > 0 ? months[months.length - 1].lastDate : undefined;
+      state.firstDate = months[0].firstDate;
+      state.lastDate = months[months.length - 1].lastDate;
 
       // reset selected date if 'markDisabled' returns true
       if ('selectedDate' in patch && !isDateSelectable(state.selectedDate, state)) {
@@ -263,8 +286,7 @@ export class NgbDatepickerService {
 
       // adjusting focus after months were built
       if ('firstDate' in patch) {
-        if (state.focusDate === undefined || state.focusDate.before(state.firstDate) ||
-            state.focusDate.after(state.lastDate)) {
+        if (!state.focusDate || state.focusDate.before(state.firstDate) || state.focusDate.after(state.lastDate)) {
           state.focusDate = startDate;
         }
       }

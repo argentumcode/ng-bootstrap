@@ -29,11 +29,15 @@ export class NgbCalendarHebrew extends NgbCalendar {
 
   getWeeksPerMonth() { return 6; }
 
-  isValid(date: NgbDate): boolean {
-    let b = date && isNumber(date.year) && isNumber(date.month) && isNumber(date.day);
-    b = b && date.month > 0 && date.month <= (isHebrewLeapYear(date.year) ? 13 : 12);
-    b = b && date.day > 0 && date.day <= getDaysInHebrewMonth(date.month, date.year);
-    return b && !isNaN(toGregorian(date).getTime());
+  isValid(date?: NgbDate | null): boolean {
+    if (date != null) {
+      let b = isNumber(date.year) && isNumber(date.month) && isNumber(date.day);
+      b = b && date.month > 0 && date.month <= (isHebrewLeapYear(date.year) ? 13 : 12);
+      b = b && date.day > 0 && date.day <= getDaysInHebrewMonth(date.month, date.year);
+      return b && !isNaN(toGregorian(date).getTime());
+    }
+
+    return false;
   }
 
   getNext(date: NgbDate, period: NgbPeriod = 'd', number = 1) {
@@ -64,7 +68,7 @@ export class NgbCalendarHebrew extends NgbCalendar {
     return day === 0 ? 7 : day;
   }
 
-  getWeekNumber(week: NgbDate[], firstDayOfWeek: number) {
+  getWeekNumber(week: readonly NgbDate[], firstDayOfWeek: number) {
     const date = week[week.length - 1];
     return Math.ceil(getDayNumberInHebrewYear(date) / 7);
   }

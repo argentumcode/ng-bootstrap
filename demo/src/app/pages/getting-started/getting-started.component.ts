@@ -1,13 +1,59 @@
-import {Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {Snippet} from '../../shared/code/snippet';
 
 @Component({
-  templateUrl: './getting-started.component.html'
+  templateUrl: './getting-started.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GettingStartedPage {
+
+  instructionsCollapsed = true;
+
+  schematics = Snippet({
+    lang: 'bash',
+    code: `ng add @ng-bootstrap/ng-bootstrap`,
+  });
+
+  schematicsProject = Snippet({
+    lang: 'bash',
+    code: `ng add @ng-bootstrap/ng-bootstrap --project myProject`,
+  });
+
+  bootstrapCss = Snippet({
+    lang: 'css',
+    code: `@import "~bootstrap/scss/bootstrap";`,
+  });
+
+  bootstrapCssAngularJson = Snippet({
+    lang: 'typescript',
+    code: `
+      "yourApp": {
+        "architect": {
+          "build": {
+            "options": {
+              "styles": [
+                "node_modules/bootstrap/dist/css/bootstrap.min.css"
+              ]
+            }
+          }
+        }
+      }
+    `,
+  });
+
+  bootstrapInstall = Snippet({
+    lang: 'bash',
+    code: `npm install bootstrap`,
+  });
+
   codeInstall = Snippet({
     lang: 'bash',
-    code: `npm install --save @ng-bootstrap/ng-bootstrap`,
+    code: `npm install @ng-bootstrap/ng-bootstrap`,
+  });
+
+  polyfillInstall = Snippet({
+    lang: 'bash',
+    code: `ng add @angular/localize`,
   });
 
   codeRoot = Snippet({
@@ -16,9 +62,7 @@ export class GettingStartedPage {
       import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
       @NgModule({
-        ...
-        imports: [NgbModule, ...],
-        ...
+        imports: [NgbModule],
       })
       export class YourAppModule {
       }
@@ -31,20 +75,9 @@ export class GettingStartedPage {
       import {NgbPaginationModule, NgbAlertModule} from '@ng-bootstrap/ng-bootstrap';
 
       @NgModule({
-        ...
-        imports: [NgbPaginationModule, NgbAlertModule, ...],
-        ...
+        imports: [NgbPaginationModule, NgbAlertModule],
       })
       export class YourAppModule {
-      }
-    `,
-  });
-
-  codeSystem = Snippet({
-    lang: 'typescript',
-    code: `
-      map: {
-        '@ng-bootstrap/ng-bootstrap': 'node_modules/@ng-bootstrap/ng-bootstrap/bundles/ng-bootstrap.js',
       }
     `,
   });

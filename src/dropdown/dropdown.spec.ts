@@ -327,12 +327,11 @@ describe('ngb-dropdown-toggle', () => {
       </div>`;
 
     const fixture = createTestComponent(html);
-    const compiled = fixture.nativeElement;
     const dropdown = fixture.debugElement.query(By.directive(NgbDropdown)).injector.get(NgbDropdown);
     dropdown.open();
     fixture.detectChanges();
-    const dropdownElement = document.querySelector('div[ngbDropdownMenu]');
-    const parentContainer = dropdownElement.parentNode;
+    const dropdownElement = document.querySelector('div[ngbDropdownMenu]') !;
+    const parentContainer = dropdownElement.parentNode !;
     expect(parentContainer).toHaveCssClass('dropdown');
     expect(parentContainer.parentNode).toBe(document.body, 'The dropdown should be attached to the body');
 
@@ -482,8 +481,7 @@ describe('ngb-dropdown-toggle', () => {
 @Component({selector: 'test-cmp', template: ''})
 class TestComponent {
   isOpen = false;
-  stateChanges = [];
-  items = [];
+  stateChanges: boolean[] = [];
 
   recordStateChange($event) {
     this.stateChanges.push($event);

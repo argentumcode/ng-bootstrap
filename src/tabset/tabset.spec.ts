@@ -1,9 +1,10 @@
+// tslint:disable:deprecation
 import {TestBed, ComponentFixture, inject} from '@angular/core/testing';
 import {createGenericTestComponent} from '../test/common';
 
 import {Component} from '@angular/core';
 
-import {NgbTabsetModule} from './tabset.module';
+import {NgbTabChangeEvent, NgbTabsetModule} from './tabset.module';
 import {NgbTabsetConfig} from './tabset-config';
 import {NgbTabset} from './tabset';
 
@@ -187,8 +188,8 @@ describe('ngb-tabset', () => {
     fixture.detectChanges();
 
     const titles = getTabTitles(fixture.nativeElement);
-    const parentTitle = titles[0].textContent.trim();
-    const childTitle = titles[1].textContent.trim();
+    const parentTitle = titles[0].textContent !.trim();
+    const childTitle = titles[1].textContent !.trim();
 
     expect(parentTitle).toContain('parent');
     expect(parentTitle).not.toContain('child');
@@ -535,7 +536,7 @@ describe('ngb-tabset', () => {
 
     const button = getButton(fixture.nativeElement);
 
-    let changeEvent = null;
+    let changeEvent: NgbTabChangeEvent | null = null;
     fixture.componentInstance.changeCallback = (event) => {
       changeEvent = event;
       event.preventDefault();
@@ -544,7 +545,7 @@ describe('ngb-tabset', () => {
     // Select the second tab -> selection will be canceled
     (<HTMLElement>button[1]).click();
     fixture.detectChanges();
-    expect(changeEvent).toEqual(jasmine.objectContaining({activeId: 'first', nextId: 'second'}));
+    expect(changeEvent !).toEqual(jasmine.objectContaining({activeId: 'first', nextId: 'second'}));
     expectTabs(fixture.nativeElement, [true, false]);
   });
 

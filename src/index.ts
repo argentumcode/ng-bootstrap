@@ -8,6 +8,7 @@ import {NgbCollapseModule} from './collapse/collapse.module';
 import {NgbDatepickerModule} from './datepicker/datepicker.module';
 import {NgbDropdownModule} from './dropdown/dropdown.module';
 import {NgbModalModule} from './modal/modal.module';
+import {NgbNavModule} from './nav/nav.module';
 import {NgbPaginationModule} from './pagination/pagination.module';
 import {NgbPopoverModule} from './popover/popover.module';
 import {NgbProgressbarModule} from './progressbar/progressbar.module';
@@ -58,10 +59,15 @@ export {
   NgbDateParserFormatter,
   NgbDatepicker,
   NgbDatepickerConfig,
+  NgbInputDatepickerConfig,
+  NgbDatepickerContent,
   NgbDatepickerI18n,
   NgbDatepickerI18nHebrew,
+  NgbDatepickerKeyboardService,
   NgbDatepickerModule,
+  NgbDatepickerMonth,
   NgbDatepickerNavigateEvent,
+  NgbDatepickerState,
   NgbDateStruct,
   NgbInputDatepicker,
   NgbPeriod
@@ -73,7 +79,8 @@ export {
   NgbDropdownItem,
   NgbDropdownMenu,
   NgbDropdownModule,
-  NgbDropdownToggle
+  NgbDropdownToggle,
+  NgbNavbar
 } from './dropdown/dropdown.module';
 export {
   ModalDismissReasons,
@@ -84,6 +91,17 @@ export {
   NgbModalOptions,
   NgbModalRef
 } from './modal/modal.module';
+export {
+  NgbNavChangeEvent,
+  NgbNavConfig,
+  NgbNav,
+  NgbNavContent,
+  NgbNavContentContext,
+  NgbNavItem,
+  NgbNavLink,
+  NgbNavModule,
+  NgbNavOutlet
+} from './nav/nav.module';
 export {
   NgbPagination,
   NgbPaginationConfig,
@@ -129,8 +147,10 @@ export {Placement} from './util/positioning';
 
 const NGB_MODULES = [
   NgbAccordionModule, NgbAlertModule, NgbButtonsModule, NgbCarouselModule, NgbCollapseModule, NgbDatepickerModule,
-  NgbDropdownModule, NgbModalModule, NgbPaginationModule, NgbPopoverModule, NgbProgressbarModule, NgbRatingModule,
-  NgbTabsetModule, NgbTimepickerModule, NgbToastModule, NgbTooltipModule, NgbTypeaheadModule
+  NgbDropdownModule, NgbModalModule, NgbNavModule, NgbPaginationModule, NgbPopoverModule, NgbProgressbarModule,
+  NgbRatingModule, NgbTimepickerModule, NgbToastModule, NgbTooltipModule, NgbTypeaheadModule,
+  // tslint:disable-next-line:deprecation
+  NgbTabsetModule
 ];
 
 @NgModule({imports: NGB_MODULES, exports: NGB_MODULES})

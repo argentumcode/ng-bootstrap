@@ -18,7 +18,7 @@ import {
   Optional
 } from '@angular/core';
 import {DOCUMENT} from '@angular/common';
-import {Subject, Subscription} from 'rxjs';
+import {fromEvent, Subject, Subscription} from 'rxjs';
 import {take} from 'rxjs/operators';
 
 import {Placement, PlacementArray, positionElements} from '../util/positioning';
@@ -32,13 +32,15 @@ export class NgbNavbar {
 }
 
 /**
- * A directive you should put put on a dropdown item to enable keyboard navigation.
+ * A directive you should put on a dropdown item to enable keyboard navigation.
  * Arrow keys will move focus between items marked with this directive.
  *
  * @since 4.1.0
  */
 @Directive({selector: '[ngbDropdownItem]', host: {'class': 'dropdown-item', '[class.disabled]': 'disabled'}})
 export class NgbDropdownItem {
+  static ngAcceptInputType_disabled: boolean | '';
+
   private _disabled = false;
 
   @Input()
@@ -69,7 +71,7 @@ export class NgbDropdownItem {
   }
 })
 export class NgbDropdownMenu {
-  placement: Placement = 'bottom';
+  placement: Placement | null = 'bottom';
   isOpen = false;
 
   @ContentChildren(NgbDropdownItem) menuItems: QueryList<NgbDropdownItem>;
@@ -130,9 +132,12 @@ export class NgbDropdownToggle extends NgbDropdownAnchor {
  */
 @Directive({selector: '[ngbDropdown]', exportAs: 'ngbDropdown', host: {'[class.show]': 'isOpen()'}})
 export class NgbDropdown implements AfterContentInit, OnDestroy {
+  static ngAcceptInputType_autoClose: boolean | string;
+  static ngAcceptInputType_display: string;
+
   private _closed$ = new Subject<void>();
   private _zoneSubscription: Subscription;
-  private _bodyContainer: HTMLElement;
+  private _bodyContainer: HTMLElement | null = null;
 
   @ContentChild(NgbDropdownMenu, {static: false}) private _menu: NgbDropdownMenu;
   @ContentChild(NgbDropdownMenu, {read: ElementRef, static: false}) private _menuElement: ElementRef;
@@ -289,15 +294,15 @@ export class NgbDropdown implements AfterContentInit, OnDestroy {
     const itemElements = this._getMenuElements();
 
     let position = -1;
-    let isEventFromItems = false;
+    let itemElement: HTMLElement | null = null;
     const isEventFromToggle = this._isEventFromToggle(event);
 
     if (!isEventFromToggle && itemElements.length) {
-      itemElements.forEach((itemElement, index) => {
-        if (itemElement.contains(event.target as HTMLElement)) {
-          isEventFromItems = true;
+      itemElements.forEach((item, index) => {
+        if (item.contains(event.target as HTMLElement)) {
+          itemElement = item;
         }
-        if (itemElement === this._document.activeElement) {
+        if (item === this._document.activeElement) {
           position = index;
         }
       });
@@ -305,14 +310,17 @@ export class NgbDropdown implements AfterContentInit, OnDestroy {
 
     // closing on Enter / Space
     if (key === Key.Space || key === Key.Enter) {
-      if (isEventFromItems && (this.autoClose === true || this.autoClose === 'inside')) {
-        this.close();
+      if (itemElement && (this.autoClose === true || this.autoClose === 'inside')) {
+        // Item is either a button or a link, so click will be triggered by the browser on Enter or Space.
+        // So we have to register a one-time click handler that will fire after any user defined click handlers
+        // to close the dropdown
+        fromEvent(itemElement, 'click').pipe(take(1)).subscribe(() => this.close());
       }
       return;
     }
 
     // opening / navigating
-    if (isEventFromToggle || isEventFromItems) {
+    if (isEventFromToggle || itemElement) {
       this.open();
 
       if (itemElements.length) {
@@ -404,7 +412,7 @@ export class NgbDropdown implements AfterContentInit, OnDestroy {
     }
   }
 
-  private _applyPlacementClasses(placement?: Placement) {
+  private _applyPlacementClasses(placement?: Placement | null) {
     const menu = this._menu;
     if (menu) {
       if (!placement) {

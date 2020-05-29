@@ -7,6 +7,7 @@ import {
   ContentChildren,
   Directive,
   EventEmitter,
+  HostListener,
   Inject,
   Input,
   NgZone,
@@ -15,14 +16,14 @@ import {
   PLATFORM_ID,
   QueryList,
   TemplateRef,
-  HostListener
+  ViewEncapsulation
 } from '@angular/core';
 import {isPlatformBrowser} from '@angular/common';
 
 import {NgbCarouselConfig} from './carousel-config';
 
-import {Subject, timer, BehaviorSubject, combineLatest, NEVER} from 'rxjs';
-import {startWith, map, switchMap, takeUntil, distinctUntilChanged} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, NEVER, Subject, timer} from 'rxjs';
+import {distinctUntilChanged, map, startWith, switchMap, takeUntil} from 'rxjs/operators';
 
 let nextId = 0;
 
@@ -49,6 +50,7 @@ export class NgbSlide {
   selector: 'ngb-carousel',
   exportAs: 'ngbCarousel',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   host: {
     'class': 'carousel slide',
     '[style.display]': '"block"',
@@ -180,9 +182,10 @@ export class NgbCarousel implements AfterContentChecked,
     // so we should run it in the browser and outside Angular
     if (isPlatformBrowser(this._platformId)) {
       this._ngZone.runOutsideAngular(() => {
-        const hasNextSlide$ = combineLatest(
-                                  this.slide.pipe(map(slideEvent => slideEvent.current), startWith(this.activeId)),
-                                  this._wrap$, this.slides.changes.pipe(startWith(null)))
+        const hasNextSlide$ = combineLatest([
+                                this.slide.pipe(map(slideEvent => slideEvent.current), startWith(this.activeId)),
+                                this._wrap$, this.slides.changes.pipe(startWith(null))
+                              ])
                                   .pipe(
                                       map(([currentSlideId, wrap]) => {
                                         const slideArr = this.slides.toArray();
@@ -190,7 +193,7 @@ export class NgbCarousel implements AfterContentChecked,
                                         return wrap ? slideArr.length > 1 : currentSlideIdx < slideArr.length - 1;
                                       }),
                                       distinctUntilChanged());
-        combineLatest(this._pause$, this._pauseOnHover$, this._mouseHover$, this._interval$, hasNextSlide$)
+        combineLatest([this._pause$, this._pauseOnHover$, this._mouseHover$, this._interval$, hasNextSlide$])
             .pipe(
                 map(([pause, pauseOnHover, mouseHover, interval, hasNextSlide]) =>
                         ((pause || (pauseOnHover && mouseHover) || !hasNextSlide) ? 0 : interval)),
@@ -206,7 +209,7 @@ export class NgbCarousel implements AfterContentChecked,
 
   ngAfterContentChecked() {
     let activeSlide = this._getSlideById(this.activeId);
-    this.activeId = activeSlide ? activeSlide.id : (this.slides.length ? this.slides.first.id : null);
+    this.activeId = activeSlide ? activeSlide.id : (this.slides.length ? this.slides.first.id : '');
   }
 
   ngOnDestroy() { this._destroy$.next(); }
@@ -261,10 +264,13 @@ export class NgbCarousel implements AfterContentChecked,
     return currentActiveSlideIdx > nextActiveSlideIdx ? NgbSlideEventDirection.RIGHT : NgbSlideEventDirection.LEFT;
   }
 
-  private _getSlideById(slideId: string): NgbSlide { return this.slides.find(slide => slide.id === slideId); }
+  private _getSlideById(slideId: string): NgbSlide | null {
+    return this.slides.find(slide => slide.id === slideId) || null;
+  }
 
   private _getSlideIdxById(slideId: string): number {
-    return this.slides.toArray().indexOf(this._getSlideById(slideId));
+    const slide = this._getSlideById(slideId);
+    return slide != null ? this.slides.toArray().indexOf(slide) : -1;
   }
 
   private _getNextSlide(currentSlideId: string): string {

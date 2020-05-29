@@ -19,7 +19,6 @@ const NGB_CHECKBOX_VALUE_ACCESSOR = {
 @Directive({
   selector: '[ngbButton][type=checkbox]',
   host: {
-    'autocomplete': 'off',
     '[checked]': 'checked',
     '[disabled]': 'disabled',
     '(change)': 'onInputChange($event)',
@@ -29,6 +28,8 @@ const NGB_CHECKBOX_VALUE_ACCESSOR = {
   providers: [NGB_CHECKBOX_VALUE_ACCESSOR]
 })
 export class NgbCheckBox implements ControlValueAccessor {
+  static ngAcceptInputType_disabled: boolean | '';
+
   checked;
 
   /**

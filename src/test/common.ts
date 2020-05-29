@@ -4,18 +4,19 @@ import {Key} from '../util/key';
 
 
 
-export function createGenericTestComponent<T>(html: string, type: {new (...args: any[]): T}): ComponentFixture<T> {
+export function createGenericTestComponent<T>(
+    html: string, type: {new (...args: any[]): T}, detectChanges = true): ComponentFixture<T> {
   TestBed.overrideComponent(type, {set: {template: html}});
   const fixture = TestBed.createComponent(type);
-  fixture.detectChanges();
+  if (detectChanges) {
+    fixture.detectChanges();
+  }
   return fixture as ComponentFixture<T>;
 }
 
 export type Browser = 'ie9' | 'ie10' | 'ie11' | 'ie' | 'edge' | 'chrome' | 'safari' | 'firefox';
 
 export function getBrowser(ua = window.navigator.userAgent) {
-  let browser = 'unknown';
-
   // IE < 11
   const msie = ua.indexOf('MSIE ');
   if (msie > 0) {
@@ -48,9 +49,7 @@ export function getBrowser(ua = window.navigator.userAgent) {
     return 'firefox';
   }
 
-  if (browser === 'unknown') {
-    throw new Error('Browser detection failed for: ' + ua);
-  }
+  throw new Error('Browser detection failed for: ' + ua);
 }
 
 export function isBrowser(browsers: Browser | Browser[], ua = window.navigator.userAgent) {
